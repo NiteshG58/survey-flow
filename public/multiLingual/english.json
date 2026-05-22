@@ -1,0 +1,29 @@
+{
+  "redirect.title" : "Redirecting…",
+  "srvyPrcs.nextBtn" : "Next",
+  "srvyPrcs.Instruction" : "Instruction",
+  "srvyFinal.msgPara" : "You have qualified for the survey. We are now redirecting you to the survey page. Please note, some of the qualification questions might be asked again.",
+  "srvyFinal.prdctOpinionMsg" : "Please read the questions carefully and be honest when offering your answers and your responses are anonymous and will not be identified with you in any way.",
+  "srvyFinal.rsnpAns" : "Thank you for your time and feedback!",
+  
+
+  "srvyFinal.btnLtsDo" : "Go to Survey",
+  "srvyFinal.grpMsg" : "Important Message",
+  "srvyClose.hdng0": "We are sorry the survey is not available for now, we appologize for the inconvenience caused",
+  "srvyClose.msg0": "Sorry, this survey is currently not available.",
+  "srvyClose.hdng1": "Thank you for trying this survey.",
+  "srvyClose.hdng2": "We're sorry you couldn't finish this survey. Sometimes, surveys look for certain groups or interests, and you might not have been a perfect match.",
+  "srvyClose.msg1": "We’re sorry, but you were not able to complete that survey. Sometimes the survey is looking for a particular demographic or specific types of interests, and you may not have fit what they were looking for..",
+  "srvyClose.msg2": "Sorry, this survey already taken by you.",
+  "srvyClose.msg3": "mis match of query string data from saved data.",
+  "srvyClose.msg4": "Sorry, transaction id not exist in query string.",
+  "srvyClose.msg5": "We’re sorry, but you were not able to complete that survey. When a survey has filled in the number of respondents who fit the goal, it will be closed",
+  "test.surveyHdng" : "Test URL is not provided for this survey",
+  "survey.cmpltTkn.hdng" : "Survey already taken",
+  "survey.cmpltTkn.hdngAnswr" : "As you have already answered this survey, this transaction will be considered invalid.",
+  "surveyErr.hdng" : "Invalid transaction",
+  "surveyErr.msg" : "URL Redirection Test Successful",
+  "surveyErrRdrct.hdng" : "In actual environment, you will be redirected to the supplier’s failure page on survey failure",
+  "surveyOQ.msg" : "In actual environment, you will be redirected to the supplier’s overquota page on exceeding survey's quota.",
+  "surveyCmplt.msg" : "In actual environment, you will be redirected to the supplier’s thank you page on survey completion."
+}

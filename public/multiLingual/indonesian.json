@@ -1,0 +1,28 @@
+{
+  "redirect.title" : "Mengarahkan ...",
+  "srvyPrcs.Instruction" : "Petunjuk",
+  "srvyPrcs.nextBtn" : "Berikutnya",
+  "srvyFinal.msgPara" : "Anda memenuhi syarat untuk survei. Kami sekarang mengarahkan Anda ke halaman survei. Harap dicatat, beberapa pertanyaan kualifikasi mungkin ditanyakan lagi.",
+  "srvyFinal.prdctOpinionMsg" : "Harap baca pertanyaan dengan seksama dan jujur ketika menawarkan jawaban Anda.",
+  "srvyFinal.rsnpAns" : "Terima kasih atas waktu dan umpan balik Anda!",
+  "srvyFinal.btnLtsDo" : "Mulai",
+  "srvyFinal.grpMsg" : "Pesan penting",
+  "srvyClose.hdng0": "Maaf survei ini tidak tersedia untuk saat ini, kami mohon maaf atas ketidaknyamanan yang ditimbulkan",
+  "srvyClose.msg0": "Maaf, survei ini saat ini tidak tersedia.",
+  "srvyClose.hdng1": "Terima kasih telah mencoba survei ini.",
+  "srvyClose.hdng2": "Kami mohon maaf karena Anda tidak dapat menyelesaikan survei ini. Terkadang, survei mencari kelompok atau minat tertentu, dan Anda mungkin bukan pasangan yang cocok.",
+  "srvyClose.msg1": "Kami minta maaf, tetapi Anda tidak dapat menyelesaikan survei itu. Terkadang survei mencari demografi tertentu atau jenis minat tertentu, dan Anda mungkin tidak cocok dengan apa yang mereka cari.",
+  "srvyClose.msg2": "Maaf, survei ini sudah Anda lakukan.",
+  "srvyClose.msg3": "salah mencocokkan data string kueri dari data yang disimpan.",
+  "srvyClose.msg4": "Maaf, id transaksi tidak ada dalam string kueri.",
+  "srvyClose.msg5": "Kami minta maaf, tetapi Anda tidak dapat menyelesaikan survei itu. Ketika survei telah mengisi jumlah responden yang sesuai dengan tujuan, survei akan ditutup",
+  "test.surveyHdng" : "URL tes tidak disediakan untuk survei ini",
+  "survey.cmpltTkn.hdng" : "Survei sudah diambil",
+  "survey.cmpltTkn.hdngAnswr" : "Karena Anda telah menjawab survei ini, transaksi ini akan dianggap tidak valid.",
+  "surveyErr.hdng" : "Transaksi tidak valid",
+  "surveyErr.msg" : "Tes Pengalihan URL Berhasil",
+  "surveyErrRdrct.hdng" : "Dalam lingkungan aktual, Anda akan diarahkan ke halaman kegagalan pemasok tentang kegagalan survei",
+  "surveyOQ.msg" : "Dalam lingkungan yang sebenarnya, Anda akan diarahkan ke halaman kelebihan kuota pemasok dengan melebihi kuota survei.",
+  "surveyCmplt.msg" : "Dalam lingkungan yang sebenarnya, Anda akan diarahkan ke halaman terima kasih pemasok pada penyelesaian survei."
+}
+
