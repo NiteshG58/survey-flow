@@ -91,7 +91,7 @@ For more information on using the Angular CLI, including detailed command refere
 
 ### Quick usage checklist for developers
 
-- **Never modify** `environment.prjSucRedUrl` to point to the Angular dev server (port 61258) – it must stay on the back‑end (port 3001).  
+- **Never modify** `environment.prjSucRedUrl` to point to the Angular dev server (port 4201) – it must stay on the back‑end (port 3001).  
 - **If you add new question types**: extend `SurveyService.checkTermination` and the UI component that renders the question.  
 - **To change the final redirect URL**: edit `admin_backend/config/vars.js` (`exports.prjSucRedUrl`) and, if needed, the corresponding entry in `environment.ts`.  
 - **When removing the legacy Angular‑JS app**: no further changes are required – the SPA now handles everything via the redirect component.  

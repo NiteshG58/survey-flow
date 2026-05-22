@@ -18,7 +18,7 @@ export class ProcessFinishRedirectComponent implements OnInit {
       .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
       .join('&');
 
-    const base = environment.prjSucRedUrl; // e.g. http://localhost:61258/processFinish?status=1&memberid=
+    const base = environment.prjSucRedUrl; // e.g. http://localhost:4201/processFinish?status=1&memberid=
     const finalUrl = qs ? `${base}${qs.startsWith('status') ? '&' : ''}${qs}` : base;
 
     // Hard navigation – leaves the SPA so the backend 302 runs and the legacy PHP view is shown.
