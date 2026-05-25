@@ -453,7 +453,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
             this.surveyService.updateAllTargetData(panelistUserObj).subscribe(() => {
                 this.surveyService.deleteKeyLocalStorageSavedAnswers(this.keyForSaving);
                 this.syncProfiling();
-                this.handleRedirectionFlow(queryStrings);
+                this.navigateToSurveyFinal(queryStrings);
             });
         } else {
             // Special Case: Inbox Supplier (Device ID)
@@ -463,18 +463,37 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
                     const rvid = jobTrans.RIDResp?.RVid;
                     if (rvid) {
                         const panelistUserObj = { PID: this.PID, supCode: this.supId, grp_id: this.grpId, tr_id: this.token, deviceId: rvid };
-                        this.surveyService.updateAllTargetData(panelistUserObj).subscribe(() => this.handleRedirectionFlow(queryStrings));
+                        this.surveyService.updateAllTargetData(panelistUserObj).subscribe(() => this.navigateToSurveyFinal(queryStrings));
                     } else {
-                        this.handleRedirectionFlow(queryStrings);
+                        this.navigateToSurveyFinal(queryStrings);
                     }
                 });
             } else {
-                this.handleRedirectionFlow(queryStrings);
+                this.navigateToSurveyFinal(queryStrings);
             }
         }
     }
 
-    private handleRedirectionFlow(queryStrings: string): void {
+    /** Store redirect data in the service and navigate to the instructions (survey-final) page. */
+    private navigateToSurveyFinal(queryStrings: string): void {
+        // Persist all context so SurveyFinalComponent can complete the redirect on button click.
+        this.surveyService.pendingFinalRedirect = {
+            queryStrings,
+            surData: this.surData,
+            cid: this.surData.cid,
+            token: this.token,
+            supId: this.supId,
+            grpId: this.grpId,
+            PID: this.PID,
+            countryCode: this.countryCode,
+            isRecaptcha: this.isRecaptcha
+        };
+        console.log('[Survey] All questions answered – navigating to instructions (survey-final).');
+        this.router.navigate(['screenersurvey', 'final'], { queryParamsHandling: 'preserve' });
+    }
+
+    /** Called by SurveyFinalComponent via the service after the user clicks "Let's Do It". */
+    handleRedirectionFlow(queryStrings: string): void {
         const saved = this.surveyService.getSavedAnswers(this.keyForSaving);
         const base = {
             usr_Choices: Object.values(saved),

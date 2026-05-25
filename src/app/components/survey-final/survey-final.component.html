@@ -19,7 +19,10 @@
             </div>
 
             <div class="row max_height">
-                <button class="next_btn" (click)="startSurvey()">Let's Do It</button>
+                <button class="next_btn" (click)="startSurvey()" [disabled]="isLoading">
+                    <span *ngIf="!isLoading">Let's Do It</span>
+                    <span *ngIf="isLoading">Loading…</span>
+                </button>
             </div>
         </div>
     </div>

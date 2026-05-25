@@ -13,6 +13,19 @@ export class SurveyService {
     private apiUrl = environment.apiUrl;
     private baseUrl = environment.baseUrl;
 
+    /** Stores redirect context set by QuestionnaireComponent so SurveyFinalComponent can trigger the supplier redirect. */
+    pendingFinalRedirect: {
+        queryStrings: string;
+        surData: any;
+        cid: any;
+        token: any;
+        supId: any;
+        grpId: any;
+        PID: any;
+        countryCode: string;
+        isRecaptcha: boolean;
+    } | null = null;
+
     constructor(private http: HttpClient) { }
 
     // API Methods
