@@ -1,26 +1,40 @@
-<div class="bg_colr">
+<div class="bg_colr" [dir]="rtlLangCheck ? 'rtl' : 'ltr'" [class.rtl-mode]="rtlLangCheck">
     <div class="container">
         <div class="wrap infrmtion">
             <div class="InstNameDiv">
-                <p class="InstName">Instruction</p>
-  </div>
-
-            <div class="row text_final">
-                <p>Thank you for your interest in our survey! Please read the following instructions carefully before
-                    starting.</p>
+                <h1 class="InstName">{{ instructionLabel }}</h1>
             </div>
 
-            <div class="row text_final">
-                <p>We value your honest opinion and your thoughtful responses will help us improve our research.</p>
+            <!-- Consolidated Custom Message with line-break preservation if set in settings -->
+            <div class="row text_final" *ngIf="srvyMsgPara">
+                <p style="white-space: pre-line;">{{ srvyMsgPara }}</p>
             </div>
 
-            <div class="row text_final">
-                <p>Please answer all questions based on your own personal experiences and beliefs.</p>
+            <!-- Fallback to default translation messages if no custom message exists -->
+            <div *ngIf="!srvyMsgPara">
+                <div class="row text_final" *ngIf="msgPara">
+                    <p>{{ msgPara }}</p>
+                </div>
+                <div class="row text_final" *ngIf="prdctOpinionMsg">
+                    <p>{{ prdctOpinionMsg }}</p>
+                </div>
+                <div class="row text_final" *ngIf="rsnpAns">
+                    <p>{{ rsnpAns }}</p>
+                </div>
             </div>
 
-            <div class="row max_height">
+            <!-- Optional additional Group/Pre-Survey Message -->
+            <div class="row" *ngIf="preSurvMsg" style="margin-top: 1.5rem; margin-bottom: 1.5rem;">
+                <h3 class="text-color" style="font-size: 1.25rem; font-weight: bold; margin-bottom: 0.5rem;">
+                    {{ grpMsgLabel }}
+                </h3>
+                <b style="font-weight: 600;">{{ preSurvMsg }}</b>
+            </div>
+
+            <!-- Action Button -->
+            <div class="row max_height" [style.justify-content]="rtlLangCheck ? 'flex-end' : 'flex-start'">
                 <button class="next_btn" (click)="startSurvey()" [disabled]="isLoading">
-                    <span *ngIf="!isLoading">Let's Do It</span>
+                    <span *ngIf="!isLoading">{{ btnLtsDo }}</span>
                     <span *ngIf="isLoading">Loading…</span>
                 </button>
             </div>

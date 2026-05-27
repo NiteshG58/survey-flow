@@ -287,7 +287,9 @@ export class SurveyService {
                     };
                     return this.preSurveyTerminationInQA(body).pipe(
                         map(res => {
-                            router.navigate(['screenersurvey', 'closed'], { queryParams: { message: '5' } });
+                            router.navigate(['screenersurvey', 'closed'], { 
+                                queryParams: { ...router.parseUrl(router.url).queryParams, message: '5' } 
+                            });
                             if (res?.url) setTimeout(() => window.location.href = res.url, 2000);
                             return res;
                         })
@@ -298,7 +300,9 @@ export class SurveyService {
                 }
             }),
             catchError(err => {
-                router.navigate(['screenersurvey', 'closed'], { queryParams: { message: '1' } });
+                router.navigate(['screenersurvey', 'closed'], { 
+                    queryParams: { ...router.parseUrl(router.url).queryParams, message: '1' } 
+                });
                 return throwError(() => err);
             })
         );
@@ -336,8 +340,9 @@ export class SurveyService {
     decodeBase64(base64: string): string {
         if (!base64 || typeof base64 !== 'string') return '';
         try {
-           // return decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-           return atob(base64);
+            const binString = atob(base64);
+            const bytes = Uint8Array.from(binString, (m) => m.codePointAt(0)!);
+            return new TextDecoder().decode(bytes);
         } catch (e) {
             console.error('Decoding error:', e);
             return '';

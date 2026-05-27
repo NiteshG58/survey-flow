@@ -84,7 +84,8 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
 
             // RTL & Heading logic
             this.language = params['Lang'] || 'english';
-            this.rtlLangCheck = this.language === 'arabic';
+            const rtlLangs = ['arabic', 'urdu', 'hebrew', 'persian', 'farsi', 'yiddish', 'syriac', 'pashto', 'sindhi'];
+            this.rtlLangCheck = rtlLangs.includes(this.language.toLowerCase());
             this.isStartHeading = !!params['start'];
             this.existIds = (params['existIds'] || '').split(',').filter((id: string) => id);
 
@@ -102,6 +103,15 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
             const detailsData = await firstValueFrom(this.surveyService.getSurveyDetails(this.grpId, this.supId));
             this.surData = JSON.parse(this.surveyService.decodeBase64(detailsData.surveyDetail));
             this.countryCode = this.surData.cntCode || 'US';
+
+            // Additional scan of survey metadata for RTL characters
+            const checkRtlText = (text: string) => {
+                const rtlRegex = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF\u0590-\u05FF\uFB1D-\uFB4F]/;
+                return rtlRegex.test(text);
+            };
+            if (this.surData.srvy_msg_para && checkRtlText(this.surData.srvy_msg_para)) {
+                this.rtlLangCheck = true;
+            }
 
             // 3. Security: Research Defender
             if (!isTest && this.surData.resrchDfdChk === 1) {
@@ -169,8 +179,16 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
 
             // 7. Load Questions
             const qIds = this.grpTrgtQuestions.map(q => q.q_id);
-            const rawQuestions = await firstValueFrom(this.surveyService.getTargettingQuestions({ id: qIds, language: this.language }, 100, { seq: 1 }));
+            const rawQuestions = await firstValueFrom(this.surveyService.getTargettingQuestions({ id: qIds, language: this.language.toUpperCase() }, 100, { seq: 1 }));
             this.questions = JSON.parse(this.surveyService.decodeBase64(rawQuestions.question));
+            
+            // Scan loaded questions text for RTL characters
+            if (this.questions && this.questions.length > 0) {
+                const sampleText = this.questions[0].questionText || '';
+                if (checkRtlText(sampleText)) {
+                    this.rtlLangCheck = true;
+                }
+            }
             
             // Display Order Manipulation
             this.questions.forEach((value: any) => {
@@ -551,6 +569,8 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
     }
 
     private closeSurvey(msgId: string): void {
-        this.router.navigate(['screenersurvey', 'closed'], { queryParams: { message: msgId } });
+        this.router.navigate(['screenersurvey', 'closed'], { 
+            queryParams: { ...this.route.snapshot.queryParams, message: msgId } 
+        });
     }
 }
