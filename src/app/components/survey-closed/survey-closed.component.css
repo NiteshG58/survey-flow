@@ -1,0 +1,227 @@
+/* survey-closed.component.css */
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:400,300,300italic,400italic,600,600italic,700,800,700italic,800italic');
+
+:root {
+    --primary-color: #080808;
+    --accent-color: #ddd;
+    --surveyFlowBG-color: #ddd;
+}
+
+* {
+    font-family: 'Open Sans', sans-serif;
+}
+
+/* Main container - matching original gradient background */
+.main_survey_page {
+    background: var(--surveyFlowBG-color);
+    height: 100vh;
+    overflow-y: auto;
+    padding-bottom: 50px;
+    position: relative;
+}
+
+.wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    box-sizing: border-box;
+}
+
+.col-md-12 {
+    width: 100%;
+}
+
+.row-centered {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.block-center {
+    margin: 0 auto;
+    float: none;
+}
+
+/* Card styling - matching original .wrap.infrmtion */
+.wrap.infrmtion {
+    position: relative;
+    background: #fff;
+    top: 0;
+    border-radius: 8px;
+    left: 0;
+    transform: none;
+    width: fit-content;
+    max-width: 90%;
+    min-width: 280px;
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
+    margin: 0 auto;
+    padding: 30px 40px;
+}
+
+/* Message container */
+.messge_col {
+    text-align: center;
+}
+
+/* Heading styling - matching original h1_color */
+.h1_color {
+    color: black;
+    font-size: 32px;
+    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 25px;
+    color: var(--primary-color);
+}
+
+.h1_color h1 {
+    font-weight: 600;
+    margin: 36px 0 32px 0;
+    color: black;
+}
+
+/* Message heading */
+.messge_col h1 {
+    font-weight: 600;
+    margin: 0 0 25px 0;
+    color: var(--primary-color);
+    font-size: 32px;
+}
+
+.messge_col h4 {
+    font-size: 20px;
+    color: #000;
+    font-weight: 300;
+    margin-bottom: 20px;
+    line-height: 1.4;
+}
+
+/* Support and disqualification text */
+.support-text p,
+.disqualified-text p {
+    font-size: 16px;
+    color: #666;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.disqualified-text p {
+    color: #999;
+}
+
+/* RTL Support */
+.rtl-mode {
+    text-align: right;
+}
+
+.rtl-mode .messge_col h1,
+.rtl-mode .messge_col h4 {
+    text-align: right;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .wrap.infrmtion {
+        position: relative;
+        top: auto;
+        left: auto;
+        transform: none;
+        width: 85%;
+        margin: 30px auto;
+        padding: 20px 25px;
+    }
+
+    .messge_col h1 {
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+
+    .messge_col h4 {
+        font-size: 18px;
+    }
+
+    .support-text p,
+    .disqualified-text p {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .wrap.infrmtion {
+        top: 20px;
+        border-radius: 6px;
+        padding: 15px 20px;
+        width: 90%;
+    }
+
+    .messge_col h1 {
+        font-size: 20px;
+        margin-bottom: 12px;
+    }
+
+    .messge_col h4 {
+        font-size: 16px;
+    }
+
+    .support-text p,
+    .disqualified-text p {
+        font-size: 12px;
+    }
+}
+
+/* For very small devices */
+@media only screen 
+    and (device-width: 375px) 
+    and (device-height: 667px) 
+    and (-webkit-device-pixel-ratio: 2) {
+    
+    .wrap.infrmtion {
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        transform: none !important;
+        width: 90% !important;
+        margin: 15px auto !important;
+        padding: 15px !important;
+    }
+    
+    .messge_col h1 {
+        font-size: 20px !important;
+        margin-bottom: 10px !important;
+    }
+    
+    .messge_col h4 {
+        font-size: 16px !important;
+    }
+}
+
+/* Height adjustments for different screen heights */
+@media (max-height: 600px) {
+    .main_survey_page {
+        height: auto;
+        min-height: 100vh;
+    }
+    
+    .wrap.infrmtion {
+        margin: 20px auto;
+    }
+}
+
+/* Animation for card entrance */
+.wrap.infrmtion {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

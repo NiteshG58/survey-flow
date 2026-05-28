@@ -13,7 +13,7 @@ export const routes: Routes = [
     { path: 'screenersurvey/redirect', component: SurveyRedirectComponent },
     { path: 'screenersurvey/expiretime', component: SurveyExpireComponent },
     { path: 'processFinish', component: ProcessFinishRedirectComponent },
-{ path: 'access_denied', component: AccessDeniedComponent },
+    { path: 'access_denied', component: AccessDeniedComponent },
     { path: 'screenersurvey/:questionKey', component: QuestionnaireComponent },
     { path: '', redirectTo: 'screenersurvey/start', pathMatch: 'full' },
     { path: 'landing', redirectTo: 'screenersurvey/closed' },

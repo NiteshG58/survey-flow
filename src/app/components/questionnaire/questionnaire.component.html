@@ -1,75 +1,113 @@
-<div [dir]="rtlLangCheck ? 'rtl' : 'ltr'" [class.rtl-mode]="rtlLangCheck" class="survey-container">
+<!-- questionnaire.component.html -->
+<div [dir]="rtlLangCheck ? 'rtl' : 'ltr'" [class.rtl-mode]="rtlLangCheck" class="survey-container main_survey_page">
     <div class="loading-overlay" *ngIf="loading">
         <app-loading-spinner [loading]="true"></app-loading-spinner>
     </div>
 
-    <div class="card shadow-lg border-0 rounded-4" *ngIf="!loading && currentQuestion">
-        <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
-            <h5 class="text-secondary small text-uppercase fw-bold m-0" *ngIf="isStartHeading">
-                Survey Introduction
-            </h5>
-            <div class="progress mt-3" style="height: 6px;">
-                <div class="progress-bar" role="progressbar" style="width: 50%"></div>
-            </div>
-        </div>
+    <div class="container">
+        <div class="row row-centered">
+            <div class="col-md-8 block-center" *ngIf="!loading && currentQuestion">
+                <div class="card middle_cart">
+                    <!-- Card Header with Progress -->
+                    <div class="card-header" *ngIf="isStartHeading">
+                        <h5 class="text-secondary small text-uppercase fw-bold m-0">
+                            Survey Introduction
+                        </h5>
+                        <div class="progress mt-3" style="height: 6px;">
+                            <div class="progress-bar" role="progressbar" [style.width]="progressWidth"></div>
+                        </div>
+                    </div>
 
-        <div class="card-body p-4">
-            <h2 class="h4 fw-bold mb-4 text-dark" [innerHTML]="currentQuestion.questionText"></h2>
+                    <div class="card-body p-0">
+                        <!-- Question Header -->
+                        <h5 class="questions">
+                            <span class="qustn_nmber" *ngIf="currentQuestionNumber > 0">
+                                {{ currentQuestionNumber }}.
+                            </span>
+                            <span class="main_crd_heding" [innerHTML]="currentQuestion.questionText"></span>
+                        </h5>
 
-            <!-- Success/Counter Feedback for Multi-punch -->
-            <div *ngIf="currentQuestion.questionType === 1" class="alert alert-info border-0 rounded-3 small py-2">
-                Selected: <span class="fw-bold">{{ selectedCheckboxes }}</span>
-                <span *ngIf="currentQuestion.termsCount"> / Max: {{ currentQuestion.termsCount }}</span>
-            </div>
+                        <!-- Multi-punch Counter -->
+                        <div *ngIf="currentQuestion.questionType === 1" class="alert alert-info small py-2" style="margin: 0 20px 20px 20px; background-color: #f8f9fa; border: 1px solid #ddd; border-radius: 10px;">
+                            Selected: <span class="fw-bold">{{ selectedCheckboxes }}</span>
+                            <span *ngIf="currentQuestion.termsCount"> / Max: {{ currentQuestion.termsCount }}</span>
+                        </div>
 
-            <!-- Single Punch (Radio) -->
-            <div class="mb-4" *ngIf="currentQuestion.questionType === 0">
-                <div class="list-group list-group-flush border rounded-3">
-                    <label *ngFor="let opt of currentQuestion.questionOptions"
-                        class="list-group-item list-group-item-action d-flex align-items-center cursor-pointer py-3"
-                        [class.active]="demographic.selected_opt == opt.id">
-                        <input type="radio" name="survey_radio" [value]="opt.id" [(ngModel)]="demographic.selected_opt"
-                            class="form-check-input me-3">
-                        <span [innerHTML]="opt.optText"></span>
-                    </label>
+                        <!-- Single Punch (Radio) -->
+                        <div class="wrap_contnt" *ngIf="currentQuestion.questionType === 0">
+                            <div class="row">
+                                <div *ngFor="let opt of currentQuestion.questionOptions" 
+                                     class="col-xs-12 col-sm-6 option-block survey_radioBtn">
+                                    <div class="opt_color" [class.active]="demographic.selected_opt == opt.id">
+                                        <input type="radio" 
+                                               [id]="'opt_' + opt.id" 
+                                               name="survey_radio" 
+                                               [value]="opt.id" 
+                                               [(ngModel)]="demographic.selected_opt"
+                                               [ngModelOptions]="{standalone: true}">
+                                        <label [for]="'opt_' + opt.id" [innerHTML]="opt.optText"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Multi Punch (Checkbox) -->
+                        <div class="wrap_contnt" *ngIf="currentQuestion.questionType === 1">
+                            <div class="row">
+                                <div *ngFor="let opt of currentQuestion.questionOptions"
+                                     class="col-xs-12 col-sm-6 option-block survey_radioBtn">
+                                    <div class="opt_color cstm_chkbox" [class.active]="multiPunchSelection[opt.id]">
+                                        <input type="checkbox" 
+                                               [id]="'chk_' + opt.id" 
+                                               name="cb_opt[]" 
+                                               [checked]="multiPunchSelection[opt.id]" 
+                                               (change)="cbClicks(opt)">
+                                        <label [for]="'chk_' + opt.id" class="multipuch" [innerHTML]="opt.optText"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Text & Numeric Input -->
+                        <div class="textbox-block" *ngIf="currentQuestion.questionType === 2 || currentQuestion.questionType === 3">
+                            <!-- Regular Text/Numeric Input -->
+                            <div *ngIf="currentQuestion.questionKey !== 'BIRTH_DATE'">
+                                <input [type]="currentQuestion.questionType === 3 ? 'text' : 'text'"
+                                       class="input-box-center ageQues"
+                                       [(ngModel)]="demographic.selected_opt"
+                                       [placeholder]="currentQuestion.questionType === 3 ? 'Enter number...' : 'Type your answer...'"
+                                       [required]="true"
+                                       [ngModelOptions]="{standalone: true}">
+                            </div>
+
+                            <!-- Date of Birth Input - ALTERNATIVE VERSION with clickable popup -->
+<div *ngIf="currentQuestion.questionKey === 'BIRTH_DATE'">
+    <input type="date" 
+           class="dob-input"
+           [(ngModel)]="demographic.selected_opt"
+           [min]="minDate" 
+           [max]="maxDate"
+           [ngModelOptions]="{standalone: true}"
+           (change)="validateDate()"
+           style="background-color: #fff; cursor: pointer;">
+    <div class="date-err" *ngIf="isNotValidDate">
+        Age as per DOB should be 18-100.
+    </div>
+</div>
+                        </div>
+
+                        <!-- Next Button -->
+                        <div class="next_row">
+                            <button type="button" 
+                                    class="next_btn" 
+                                    (click)="onNext()"
+                                    [disabled]="isNextDisabled()"
+                                    [class.not_active]="isNextDisabled()">
+                                {{ onceClickNext ? 'Processing...' : 'Next' }}
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
-
-            <!-- Multi Punch (Checkbox) -->
-            <div class="mb-4" *ngIf="currentQuestion.questionType === 1">
-                <div class="list-group list-group-flush border rounded-3">
-                    <label *ngFor="let opt of currentQuestion.questionOptions"
-                        class="list-group-item list-group-item-action d-flex align-items-center cursor-pointer py-3"
-                        [class.active]="multiPunchSelection[opt.id]">
-                        <input type="checkbox" [checked]="multiPunchSelection[opt.id]" (change)="cbClicks(opt)"
-                            class="form-check-input me-3">
-                        <span [innerHTML]="opt.optText"></span>
-                    </label>
-                </div>
-            </div>
-
-            <!-- Text & Numeric (Date integrated) -->
-            <div class="mb-4" *ngIf="currentQuestion.questionType === 2 || currentQuestion.questionType === 3">
-                <input *ngIf="currentQuestion.questionKey !== 'BIRTH_DATE'"
-                    [type]="currentQuestion.questionType === 3 ? 'number' : 'text'"
-                    class="form-control form-control-lg rounded-3" [(ngModel)]="demographic.selected_opt"
-                    [placeholder]="currentQuestion.questionType === 3 ? 'Enter number...' : 'Type your answer...'">
-
-                <input *ngIf="currentQuestion.questionKey === 'BIRTH_DATE'" type="date"
-                    class="form-control form-control-lg rounded-3" [(ngModel)]="demographic.selected_opt"
-                    [min]="minDate" [max]="maxDate" (change)="validateDate()">
-
-                <div *ngIf="isNotValidDate" class="text-danger small mt-2">
-                    <i class="bi bi-exclamation-triangle-fill"></i> Please enter a valid date (min age requirement).
-                </div>
-            </div>
-
-            <div class="d-grid mt-5">
-                <button class="btn btn-primary btn-lg rounded-3 py-3 fw-bold survey-btn" (click)="onNext()"
-                    [disabled]="onceClickNext || (currentQuestion.questionType == 1 && selectedCheckboxes == 0) || (currentQuestion.questionType != 1 && !demographic.selected_opt) || isNotValidDate">
-                    {{ onceClickNext ? 'Processing...' : 'Next Question' }}
-                    <i class="bi bi-arrow-right ms-2" *ngIf="!onceClickNext"></i>
-                </button>
             </div>
         </div>
     </div>

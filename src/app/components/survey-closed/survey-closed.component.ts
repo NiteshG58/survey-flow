@@ -8,29 +8,13 @@ import { SURVEY_CONFIG } from '../../config/survey.config';
   selector: 'app-survey-closed',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <div class="container mt-5 text-center" [dir]="rtlLangCheck ? 'rtl' : 'ltr'" [class.rtl-mode]="rtlLangCheck">
-      <div class="card shadow-sm p-5 border-0 rounded-4">
-        <div class="card-body">
-          <h1 class="display-5 fw-bold mb-4 text-primary">{{ heading }}</h1>
-          <p class="lead text-muted">{{ message }}</p>
-          <div *ngIf="showSupport" class="mt-4 pt-4 border-top">
-            <p class="small text-secondary">If you believe this is an error, please contact our support team.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  `,
-  styles: [`
-    .container { max-width: 800px; }
-    h1 { font-family: 'Outfit', sans-serif; }
-    p { font-family: 'Inter', sans-serif; }
-    .rtl-mode { text-align: right; }
-  `]
+  templateUrl: './survey-closed.component.html',
+  styleUrls: ['./survey-closed.component.css']
 })
 export class SurveyClosedComponent implements OnInit {
   heading: string = 'Survey Unavailable';
   message: string = 'Sorry, this survey is currently not available.';
+  subHeading: string = '';
   showSupport: boolean = false;
   rtlLangCheck: boolean = false;
   lang: string = 'english';
@@ -61,12 +45,18 @@ export class SurveyClosedComponent implements OnInit {
       const cfg = (SURVEY_CONFIG.surveyClosedMessages as any)[msgId] || SURVEY_CONFIG.surveyClosedMessages[0];
       this.heading = cfg.h1;
       this.message = cfg.h4;
+      this.subHeading = '';
 
       // msg 1: Disqualified, msg 5: OverQuota
       if (msgId === '1' || msgId === '5') {
         this.showSupport = false;
+        this.subHeading = 'Unfortunately, you do not qualify for this survey.';
+        if (msgId === '5') {
+          this.subHeading = 'The quota for this survey has been filled.';
+        }
       } else {
         this.showSupport = true;
+        this.subHeading = 'Please try again later or contact support.';
       }
 
       // Fetch multilingual translation JSON
@@ -81,14 +71,14 @@ export class SurveyClosedComponent implements OnInit {
           }
 
           // Scan translated labels for RTL characters
-          if (this.checkRtlText(this.heading) || this.checkRtlText(this.message)) {
+          if (this.checkRtlText(this.heading) || this.checkRtlText(this.message) || this.checkRtlText(this.subHeading)) {
             this.rtlLangCheck = true;
           }
           this.cdr.markForCheck();
         },
         error: (err) => {
           console.warn(`[SurveyClosed] Could not load translation file for language: ${this.lang}`, err);
-          if (this.checkRtlText(this.heading) || this.checkRtlText(this.message)) {
+          if (this.checkRtlText(this.heading) || this.checkRtlText(this.message) || this.checkRtlText(this.subHeading)) {
             this.rtlLangCheck = true;
           }
           this.cdr.markForCheck();
@@ -97,4 +87,3 @@ export class SurveyClosedComponent implements OnInit {
     });
   }
 }
-

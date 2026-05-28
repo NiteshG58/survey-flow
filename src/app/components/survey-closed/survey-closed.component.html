@@ -1,12 +1,22 @@
-<div class="bg_colr">
-    <div class="row grid_col mt-2">
-        <div class="messge_col">
-            <div style="font-size:21px;font-weight: 700;font-family: Arial, Helvetica, sans-serif;">
-                <p>{{ heading }}</p>
-            </div>
-
-            <div style="font-size:21px; font-weight: 700;font-family: Arial, Helvetica, sans-serif;text-align: left;">
-                <p>{{ subHeading }}</p>
+<!-- survey-closed.component.html -->
+<div class="main_survey_page" [dir]="rtlLangCheck ? 'rtl' : 'ltr'" [class.rtl-mode]="rtlLangCheck">
+    <div class="wrap">
+        <div class="col-md-12">
+            <div class="row row-centered">
+                <div class="col-md-8 block-center">
+                    <div class="wrap infrmtion">
+                        <div class="messge_col">
+                            <h1 class="h1_color">{{ heading }}</h1>
+                            <h4>{{ message }}</h4>
+                            <div *ngIf="showSupport" class="support-text">
+                                <p>{{ subHeading }}</p>
+                            </div>
+                            <div *ngIf="!showSupport" class="disqualified-text">
+                                <p>{{ subHeading }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

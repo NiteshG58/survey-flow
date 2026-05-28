@@ -48,6 +48,11 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
     isNotValidDate: boolean = false;
     minDate: string = '';
     maxDate: string = '';
+    
+    // Progress & Navigation
+    answeredCount: number = 0;
+    currentQuestionNumber: number = 0;
+    progressWidth: string = '0%';
 
     private routeSub?: Subscription;
     private querySub?: Subscription;
@@ -55,7 +60,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
     constructor(
         private route: ActivatedRoute,
         private router: Router,
-        private surveyService: SurveyService,
+        public surveyService: SurveyService, // Made public for template access
         private cdr: ChangeDetectorRef
     ) { }
 
@@ -226,6 +231,10 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
             });
 
             console.log('Parsed questions array:', this.questions);
+            
+            // Update progress and question number
+            this.updateProgress();
+            this.updateCurrentQuestionNumber();
 
             this.setupDateConstraints();
 
@@ -250,6 +259,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
                     }
 
                     this.recoverAnswer();
+                    this.updateCurrentQuestionNumber();
                     this.loading = false;
                     this.cdr.detectChanges(); // Force UI update
                     this.trackGA();
@@ -398,6 +408,8 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
                 console.log('Navigating to next unanswered question:', nextKey);
                 this.router.navigate(['screenersurvey', this.html2txt(nextKey)], { queryParamsHandling: 'preserve' });
                 this.resetForm();
+                this.updateProgress();
+                this.updateCurrentQuestionNumber();
             } else {
                 console.log('No more unanswered questions. Calling nextFinal()...');
                 this.nextFinal();
@@ -551,7 +563,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
     }
 
     setupDateConstraints(): void {
-        const cfg = SURVEY_CONFIG.dynataMinAge.find(it => it.cntCode === this.countryCode) || { minAge: 18 };
+        const cfg = SURVEY_CONFIG.dynataMinAge.find((it: any) => it.cntCode === this.countryCode) || { minAge: 18 };
         const now = new Date();
         this.maxDate = new Date(now.getFullYear() - cfg.minAge, now.getMonth(), now.getDate() + 1).toISOString().split('T')[0];
         this.minDate = new Date(now.getFullYear() - 100, now.getMonth(), now.getDate()).toISOString().split('T')[0];
@@ -572,5 +584,39 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
         this.router.navigate(['screenersurvey', 'closed'], { 
             queryParams: { ...this.route.snapshot.queryParams, message: msgId } 
         });
+    }
+
+    // Progress and Navigation Helper Methods
+    updateProgress(): void {
+        if (!this.questions.length) {
+            this.progressWidth = '0%';
+            this.answeredCount = 0;
+            return;
+        }
+        const saved = this.surveyService.getSavedAnswers(this.keyForSaving);
+        this.answeredCount = Object.keys(saved).length;
+        const percentage = (this.answeredCount / this.questions.length) * 100;
+        this.progressWidth = percentage + '%';
+    }
+
+    updateCurrentQuestionNumber(): void {
+        if (!this.currentQuestion || !this.questions.length) {
+            this.currentQuestionNumber = 0;
+            return;
+        }
+        const currentKey = (this.currentQuestion as any).questionKey || this.currentQuestion.questionKey;
+        const index = this.questions.findIndex(q => {
+            const key = (q as any).questionKey || q.questionKey;
+            return key === currentKey;
+        });
+        this.currentQuestionNumber = index + 1;
+    }
+
+    isNextDisabled(): boolean {
+        if (this.onceClickNext) return true;
+        if (this.currentQuestion?.questionType === 1 && this.selectedCheckboxes === 0) return true;
+        if (this.currentQuestion?.questionType !== 1 && !this.demographic.selected_opt) return true;
+        if (this.isNotValidDate) return true;
+        return false;
     }
 }
