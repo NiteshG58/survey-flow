@@ -43,10 +43,10 @@ export const SURVEY_CONFIG = {
         },
         activityTimeout: 8000,
         getTokenTimeout: 8000,
-        enabled: false
+        enabled: true
     },
     verisoul: {
-        enabled: false,
+        enabled: true,
         env: 'sandbox',
         projectId: "0706d458-7d76-4468-b18c-f08b3cbc6d45",
         subdomain: "https://js.verisoul.ai/"

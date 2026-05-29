@@ -105,6 +105,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
             }
 
             // 2. Fetch Details
+            console.log('[Init] Fetching survey details for grpId:', this.grpId, 'supId:', this.supId);
             const detailsData = await firstValueFrom(this.surveyService.getSurveyDetails(this.grpId, this.supId));
             this.surData = JSON.parse(this.surveyService.decodeBase64(detailsData.surveyDetail));
             this.countryCode = this.surData.cntCode || 'US';
@@ -157,13 +158,39 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
                 }
             }
 
-            // 4. Screener Bypass
-            if (this.surData.screenerBypass) {
-                const bypass = await firstValueFrom(this.surveyService.getBypassdata());
-                if (!bypass.bypass) {
-                    this.finalRedirect(this.surveyService.serialize(params));
-                    return;
-                }
+            // 4. Screener Bypass - early exit to final step
+            const hasBypass = Boolean(this.surData?.screenerBypass || this.surData?.supObj?.['sup' + this.supId]?.screenerBypass);
+            if (hasBypass) {
+                console.log('[Questionnaire] Screener bypass triggered. Checking global bypass settings...');
+                this.surveyService.getBypassdata().subscribe({
+                    next: (data) => {
+                        const isGlobalBypass = data.bypass; // True means show instructions page, False means redirect immediately
+                        if (!isGlobalBypass) {
+                            console.log('[Questionnaire] Global bypass is false. Redirecting to supplier immediately.');
+                            const snapshotParams = this.route.snapshot.queryParams;
+                            let queryStrings = this.surveyService.serialize(snapshotParams);
+                            queryStrings = this.surveyService.replaceAgeGender(queryStrings, this.keyForSaving);
+
+                            if (snapshotParams['isTest'] === '1') {
+                                this.surveyService.getSupplierTestUrl(queryStrings).subscribe(d => {
+                                    if (d?.supplierTestUrl) window.location.href = d.supplierTestUrl;
+                                    else this.closeSurvey('1');
+                                });
+                            } else {
+                                const ctx = { token: this.token, jb_id: this.surData.prj_id, supCode: this.supId, grp_id: this.grpId, PID: this.PID };
+                                this.surveyService.redirectToSupplierURL(queryStrings, this.router, ctx).subscribe();
+                            }
+                        } else {
+                            console.log('[Questionnaire] Global bypass is true. Navigating to final page.');
+                            this.nextFinal();
+                        }
+                    },
+                    error: (err) => {
+                        console.error('[Questionnaire] Failed to fetch global bypass setting. Defaulting to nextFinal:', err);
+                        this.nextFinal();
+                    }
+                });
+                return;
             }
 
             // 5. Transaction & Device ID
@@ -230,8 +257,6 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
                 }
             });
 
-            console.log('Parsed questions array:', this.questions);
-            
             // Update progress and question number
             this.updateProgress();
             this.updateCurrentQuestionNumber();
@@ -394,7 +419,6 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
             }
         } else {
             const saved = this.surveyService.getSavedAnswers(this.keyForSaving);
-            console.log('Finding next question - Saved:', saved);
 
             const unanswered = this.questions.find(q => {
                 const key = (q as any).QuestionKey || q.questionKey;
@@ -405,13 +429,11 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
 
             if (unanswered) {
                 const nextKey = (unanswered as any).QuestionKey || unanswered.questionKey;
-                console.log('Navigating to next unanswered question:', nextKey);
                 this.router.navigate(['screenersurvey', this.html2txt(nextKey)], { queryParamsHandling: 'preserve' });
                 this.resetForm();
                 this.updateProgress();
                 this.updateCurrentQuestionNumber();
             } else {
-                console.log('No more unanswered questions. Calling nextFinal()...');
                 this.nextFinal();
             }
         }
@@ -426,9 +448,6 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
 
     async nextFinal(): Promise<void> {
         const saved = this.surveyService.getSavedAnswers(this.keyForSaving);
-        console.log('Final check - Saved Answers:', saved);
-        console.log('Final check - questions to verify:', this.questions);
-        console.log('Final check - existIds:', this.existIds);
 
         // **URL Manipulation Check** (PSQT)
         const allAnswered = this.questions.every(q => {
@@ -436,13 +455,17 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
             const isAnswered = !!saved[key];
             const isExists = this.existIds.includes(q.id.toString());
             if (!isAnswered && !isExists) {
-                console.warn(`URL Manipulation: Question "${key}" (ID: ${q.id}) not answered and not in existIds`);
+                console.warn(`[NextFinal - URLCheck] Question "${key}" (ID: ${q.id}) not answered and not in existIds`);
             }
             return isAnswered || isExists;
         });
+        
+        console.log('[NextFinal - URLCheck] All answered check result:', allAnswered);
+        const hasBypass = Boolean(this.surData?.screenerBypass || this.surData?.supObj?.['sup' + this.supId]?.screenerBypass);
+        console.log('[NextFinal - URLCheck] Bypass check enabled:', hasBypass);
 
-        if (!allAnswered && !this.surData.screenerBypass) {
-            console.error('URL Manipulation Check Failed! Terminating...');
+        if (!allAnswered && !hasBypass) {
+            console.error('[NextFinal - URLCheck] URL Manipulation Check Failed! Terminating...');
             const body = { S: 8, token: this.token, reason: "URL Manipulation", jobId: this.surData.prj_id, supCode: this.supId, surId: this.grpId, PID: this.PID, isFraud: 0 };
             this.surveyService.preSurveyTerminationInQA(body).subscribe(d => {
                 if (d?.url) window.location.href = d.url;
@@ -450,7 +473,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
             });
             return;
         }
-        console.log('URL Manipulation Check Passed. Proceeding to supplier redirect...');
+        console.log('[NextFinal - URLCheck] URL Manipulation Check Passed. Proceeding...');
 
         const snapshotParams = this.route.snapshot.queryParams;
         let queryStrings = this.surveyService.serialize(snapshotParams);
@@ -467,6 +490,58 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
         }
 
         const usersChoicesArr = Object.values(saved);
+
+        const proceedToRedirect = () => {
+            this.surveyService.getBypassdata().subscribe({
+                next: (data) => {
+                    const isGlobalBypass = data.bypass;
+                    if (!isGlobalBypass) {
+                        console.log('[Questionnaire - nextFinal] Global bypass is false. Redirecting immediately.');
+                        if (this.surData.cid === SURVEY_CONFIG.dynataCustId) {
+                            const base = {
+                                usr_Choices: usersChoicesArr,
+                                PID: this.PID,
+                                supCode: this.supId,
+                                tr_id: this.token,
+                                cnt: this.countryCode,
+                                surData: this.surData,
+                                lang: (snapshotParams['Lang'] || 'ENGLISH').toUpperCase()
+                            };
+                            const encoded = { encodedData: this.surveyService.encryptDataBase64(JSON.stringify(base)) };
+                            this.surveyService.getDySur(encoded).subscribe(d => {
+                                if (d.redirect) window.location.href = d.url;
+                                else this.finalRedirect(queryStrings);
+                            });
+                        } else if (this.surData.cid === SURVEY_CONFIG.psCustId) {
+                            const base = {
+                                usr_Choices: usersChoicesArr,
+                                PID: this.PID,
+                                supCode: this.supId,
+                                tr_id: this.token,
+                                cnt: this.countryCode,
+                                surData: this.surData,
+                                lang: (snapshotParams['Lang'] || 'ENGLISH').toUpperCase()
+                            };
+                            const encoded = { encodedData: this.surveyService.encryptDataBase64(JSON.stringify(base)) };
+                            this.surveyService.getPSFusionSur({ ...encoded, mid: snapshotParams['mid'] }).subscribe(d => {
+                                if (d.redirect) window.location.href = d.url;
+                                else this.finalRedirect(queryStrings);
+                            });
+                        } else {
+                            this.finalRedirect(queryStrings);
+                        }
+                    } else {
+                        console.log('[Questionnaire - nextFinal] Global bypass is true. Navigating to final page.');
+                        this.navigateToSurveyFinal(queryStrings);
+                    }
+                },
+                error: (err) => {
+                    console.error('[Questionnaire - nextFinal] Error fetching bypass data, navigating to final page:', err);
+                    this.navigateToSurveyFinal(queryStrings);
+                }
+            });
+        };
+
         if (usersChoicesArr.length > 0) {
             const panelistUserObj = {
                 sur_data: usersChoicesArr,
@@ -483,7 +558,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
             this.surveyService.updateAllTargetData(panelistUserObj).subscribe(() => {
                 this.surveyService.deleteKeyLocalStorageSavedAnswers(this.keyForSaving);
                 this.syncProfiling();
-                this.navigateToSurveyFinal(queryStrings);
+                proceedToRedirect();
             });
         } else {
             // Special Case: Inbox Supplier (Device ID)
@@ -493,13 +568,13 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
                     const rvid = jobTrans.RIDResp?.RVid;
                     if (rvid) {
                         const panelistUserObj = { PID: this.PID, supCode: this.supId, grp_id: this.grpId, tr_id: this.token, deviceId: rvid };
-                        this.surveyService.updateAllTargetData(panelistUserObj).subscribe(() => this.navigateToSurveyFinal(queryStrings));
+                        this.surveyService.updateAllTargetData(panelistUserObj).subscribe(() => proceedToRedirect());
                     } else {
-                        this.navigateToSurveyFinal(queryStrings);
+                        proceedToRedirect();
                     }
                 });
             } else {
-                this.navigateToSurveyFinal(queryStrings);
+                proceedToRedirect();
             }
         }
     }
@@ -507,6 +582,9 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
     /** Store redirect data in the service and navigate to the instructions (survey-final) page. */
     private navigateToSurveyFinal(queryStrings: string): void {
         // Persist all context so SurveyFinalComponent can complete the redirect on button click.
+        console.log('[NavigateToSurveyFinal] Saving context and navigating to survey-final component...');
+        console.log('[NavigateToSurveyFinal] queryStrings:', queryStrings);
+        console.log('[NavigateToSurveyFinal] surData:', this.surData);
         this.surveyService.pendingFinalRedirect = {
             queryStrings,
             surData: this.surData,
@@ -518,6 +596,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
             countryCode: this.countryCode,
             isRecaptcha: this.isRecaptcha
         };
+        console.log('[NavigateToSurveyFinal] pendingFinalRedirect saved:', this.surveyService.pendingFinalRedirect);
         console.log('[Survey] All questions answered – navigating to instructions (survey-final).');
         this.router.navigate(['screenersurvey', 'final'], { queryParamsHandling: 'preserve' });
     }

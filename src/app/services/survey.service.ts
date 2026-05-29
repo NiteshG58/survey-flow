@@ -78,6 +78,11 @@ export class SurveyService {
         return this.http.get(url);
     }
 
+    getSupplierDetails(supplierId: string): Observable<any> {
+        // Backend supplier route is under /supplier/:id (v1 prefix included in apiUrl)
+        return this.http.get(`${this.apiUrl}/supplier/${supplierId}`);
+    }
+
     getTransaction(trId: string): Observable<any> {
         return this.http.get(`${this.apiUrl}/getTransaction/${trId}`);
     }

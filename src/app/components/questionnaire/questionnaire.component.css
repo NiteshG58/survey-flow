@@ -1,15 +1,6 @@
 /* questionnaire.component.css */
-@import url('https://fonts.googleapis.com/css?family=Open+Sans:400,300,300italic,400italic,600,600italic,700,800,700italic,800italic');
 
-:root {
-    --primary-color: #080808;
-    --accent-color: #ddd;
-    --surveyFlowBG-color: #ddd;
-}
-
-* {
-    font-family: 'Open Sans', sans-serif;
-}
+/* Global variables are defined in src/styles.css */
 
 /* Main container */
 .survey-container {
@@ -218,7 +209,7 @@ h5.questions {
 }
 
 .cstm_chkbox input[type="checkbox"] + label:after {
-    content: '\2713\0020';
+    content: '\\2713\\0020';
     position: absolute;
     top: -2px;
     left: 3px;
@@ -285,7 +276,7 @@ h5.questions {
     height: 90px;
 }
 
-/* Next button */
+/* Next button – uses global variables */
 .next_btn {
     background: var(--primary-color);
     border: medium none;
@@ -308,7 +299,7 @@ h5.questions {
     background: darkgray;
 }
 
-/* RTL Support */
+/* RTL support – only direction changes, kept minimal */
 .rtl-mode {
     text-align: right;
 }
@@ -351,22 +342,19 @@ h5.questions {
     text-align: left;
 }
 
-/* Responsive */
+/* Responsive adjustments */
 @media screen and (min-width: 310px) and (max-width: 767px) {
     .survey-container {
         height: auto;
     }
-    
     .card {
         margin-top: 30px;
         margin-bottom: 20px;
     }
-    
     h5.questions {
         font-size: 18px;
         padding: 14px 20px;
     }
-    
     .qustn_nmber {
         font-size: 17px;
         top: 15px;

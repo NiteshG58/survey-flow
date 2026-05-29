@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { SurveyService } from '../../services/survey.service';
 
 @Component({
@@ -42,15 +43,77 @@ export class SurveyFinalComponent implements OnInit {
     private cdr: ChangeDetectorRef
   ) { }
 
-  ngOnInit(): void {
-    // Guard: if someone lands here directly with no pending redirect data, bounce to closed.
-    const pending = this.surveyService.pendingFinalRedirect;
+  async ngOnInit(): Promise<void> {
+    // Guard: if someone lands here directly with no pending redirect data, attempt to reconstruct it from query parameters.
+    let pending = this.surveyService.pendingFinalRedirect;
     if (!pending) {
-      console.warn('[SurveyFinal] No pending redirect data found – redirecting to closed.');
-      this.router.navigate(['screenersurvey', 'closed'], { 
-        queryParams: { ...this.route.snapshot.queryParams, message: '1' } 
-      });
-      return;
+      console.warn('[SurveyFinal] No pending redirect data found – attempting to initialize dynamically from query parameters.');
+      try {
+        const params = this.route.snapshot.queryParams;
+        const encryptedSurvey = params['survey'];
+        const supId = params['supId'] || params['supplierId'] || '';
+        const PID = params['pid'] || 'Test';
+
+        if (!encryptedSurvey) {
+          throw new Error('Missing survey query parameter');
+        }
+
+        // 1. Decrypt Data
+        console.log('[SurveyFinal] Decrypting survey number...');
+        const grpData = await firstValueFrom(this.surveyService.getDecryptedSurvNum(encryptedSurvey));
+        const grpId = parseInt(grpData.decText[0]);
+
+        let token = '';
+        if (params['uid']) {
+          console.log('[SurveyFinal] Decrypting token UID...');
+          const uidData = await firstValueFrom(this.surveyService.getDecryptedUID(params['uid']));
+          token = uidData.decText;
+        }
+
+        // 2. Fetch Details
+        console.log('[SurveyFinal] Fetching survey details for grpId:', grpId, 'supId:', supId);
+        const detailsData = await firstValueFrom(this.surveyService.getSurveyDetails(grpId, supId));
+        const surData = JSON.parse(this.surveyService.decodeBase64(detailsData.surveyDetail));
+        const countryCode = surData.cntCode || 'US';
+        const isRecaptcha = surData.recaptchaCheck === 1;
+
+        // 3. Check Global Bypass Data
+        console.log('[SurveyFinal] Fetching global bypass settings...');
+        const bypassData = await firstValueFrom(this.surveyService.getBypassdata());
+        const isGlobalBypass = bypassData.bypass; // True means show instructions page, False means redirect immediately
+
+        let queryStrings = this.surveyService.serialize(params);
+        queryStrings = this.surveyService.replaceAgeGender(queryStrings, `${grpId}_${PID}`);
+
+        // Reconstruct the pending context
+        pending = {
+          queryStrings,
+          surData,
+          cid: surData.cid,
+          token,
+          supId,
+          grpId,
+          PID,
+          countryCode,
+          isRecaptcha
+        };
+        this.surveyService.pendingFinalRedirect = pending;
+        console.log('[SurveyFinal] Dynamic context reconstructed:', pending);
+
+        // If global bypass is false (meaning immediate redirect):
+        if (!isGlobalBypass) {
+          console.log('[SurveyFinal] Global bypass is false – redirecting immediately to supplier URL.');
+          this.startSurvey();
+          return;
+        }
+
+      } catch (error) {
+        console.error('[SurveyFinal] Failed to initialize redirect data:', error);
+        this.router.navigate(['screenersurvey', 'closed'], { 
+          queryParams: { ...this.route.snapshot.queryParams, message: '1' } 
+        });
+        return;
+      }
     }
 
     // Set custom messages from surData if present (robust handling of empty/whitespace/null/undefined settings)
