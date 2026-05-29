@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, Params } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { SurveyService } from '../../services/survey.service';
-import { SURVEY_CONFIG } from '../../config/survey.config';
+import { environment } from '../../../environments/environment';
 
 declare var DeviceIQ: any;
 
@@ -102,7 +102,7 @@ export class SurveyRedirectComponent implements OnInit, OnDestroy {
         script.type = 'text/javascript';
         script.id = 'ts_device_script_id';
         script.src = 'https://api-cdn.truesample.com/Scripts/Device/deviceapi-v4.0.2.min.js';
-        script.setAttribute('data-key', SURVEY_CONFIG.deviceIQKey);
+        script.setAttribute('data-key', environment.deviceIQKey);
 
         script.onload = () => {
             this.runDeviceIQ();

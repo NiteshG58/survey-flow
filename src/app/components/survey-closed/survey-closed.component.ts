@@ -2,7 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { SURVEY_CONFIG } from '../../config/survey.config';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-survey-closed',
@@ -42,7 +42,7 @@ export class SurveyClosedComponent implements OnInit {
       this.rtlLangCheck = rtlLangs.includes(this.lang);
 
       // Fallback default config
-      const cfg = (SURVEY_CONFIG.surveyClosedMessages as any)[msgId] || SURVEY_CONFIG.surveyClosedMessages[0];
+      const cfg = (environment.surveyClosedMessages as any)[msgId] || environment.surveyClosedMessages[0];
       this.heading = cfg.h1;
       this.message = cfg.h4;
       this.subHeading = '';

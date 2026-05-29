@@ -1,4 +1,9 @@
-export const SURVEY_CONFIG = {
+export const environment = {
+    production: true,
+    apiUrl: 'http://localhost:3001/api/v1', // adjust based on actual backend port/version
+    baseUrl: 'http://localhost:3001',
+    prjSucRedUrl: 'http://localhost:3001/processFinish?status=1&memberid=',
+
     dobQuesId: 722, // Production value from legacy config
     emailQuesId: 713, // Production value from legacy config
     recaptchaSiteKey: 'site_key_for_recaptcha',

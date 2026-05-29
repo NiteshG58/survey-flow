@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Subscription, Observable, firstValueFrom } from 'rxjs';
 import { SurveyService } from '../../services/survey.service';
 import { SurveyQuestion, QuestionType } from '../../models/survey.types';
-import { SURVEY_CONFIG } from '../../config/survey.config';
+import {environment} from '../../../environments/environment'
 import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.component';
 
 @Component({
@@ -125,7 +125,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
             }
 
             // Verisoul
-            if (!isTest && this.surData.verisoulCheck === 1 && (SURVEY_CONFIG as any).verisoul?.enabled) {
+            if (!isTest && this.surData.verisoulCheck === 1 && (environment as any).verisoul?.enabled) {
                 const runVerisoulFlow = async () => {
                     try {
                         await this.surveyService.verisoulFunction(this.token, this.grpId, this.supId, this.surData);
@@ -136,7 +136,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
                     }
                 };
 
-                const v = (SURVEY_CONFIG as any).verisoul;
+                const v = (environment as any).verisoul;
                 if (!document.querySelector('script[verisoul-project-id]')) {
                     await new Promise<void>((resolve, reject) => {
                         const el = document.createElement('script');
@@ -364,7 +364,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
             selctdOptText = opt ? opt.optText : '';
         }
 
-        if (this.currentQuestion.questionKey === 'BIRTH_DATE' || this.currentQuestion.id === SURVEY_CONFIG.dobQuesId) {
+        if (this.currentQuestion.questionKey === 'BIRTH_DATE' || this.currentQuestion.id === environment.dobQuesId) {
             this.validateDate();
             if (this.isNotValidDate) return;
         }
@@ -497,7 +497,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
                     const isGlobalBypass = data.bypass;
                     if (!isGlobalBypass) {
                         console.log('[Questionnaire - nextFinal] Global bypass is false. Redirecting immediately.');
-                        if (this.surData.cid === SURVEY_CONFIG.dynataCustId) {
+                        if (this.surData.cid === environment.dynataCustId) {
                             const base = {
                                 usr_Choices: usersChoicesArr,
                                 PID: this.PID,
@@ -512,7 +512,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
                                 if (d.redirect) window.location.href = d.url;
                                 else this.finalRedirect(queryStrings);
                             });
-                        } else if (this.surData.cid === SURVEY_CONFIG.psCustId) {
+                        } else if (this.surData.cid === environment.psCustId) {
                             const base = {
                                 usr_Choices: usersChoicesArr,
                                 PID: this.PID,
@@ -562,7 +562,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
             });
         } else {
             // Special Case: Inbox Supplier (Device ID)
-            if (this.supId === SURVEY_CONFIG.inboxSupId) {
+            if (this.supId === environment.inboxSupId) {
                 this.surveyService.getTransaction(this.token).subscribe(trans => {
                     const jobTrans = JSON.parse(this.surveyService.decodeBase64(trans.jobTrans));
                     const rvid = jobTrans.RIDResp?.RVid;
@@ -616,9 +616,9 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
 
         const encoded = { encodedData: this.surveyService.encryptDataBase64(JSON.stringify(base)) };
 
-        if (this.surData.cid === SURVEY_CONFIG.dynataCustId) {
+        if (this.surData.cid === environment.dynataCustId) {
             this.surveyService.getDySur(encoded).subscribe(d => d.redirect ? (window.location.href = d.url) : this.sendRecaptcha(queryStrings));
-        } else if (this.surData.cid === SURVEY_CONFIG.psCustId) {
+        } else if (this.surData.cid === environment.psCustId) {
             this.surveyService.getPSFusionSur({ ...encoded, mid: this.route.snapshot.queryParams['mid'] }).subscribe(d => d.redirect ? (window.location.href = d.url) : this.sendRecaptcha(queryStrings));
         } else {
             this.sendRecaptcha(queryStrings);
@@ -642,7 +642,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
     }
 
     setupDateConstraints(): void {
-        const cfg = SURVEY_CONFIG.dynataMinAge.find((it: any) => it.cntCode === this.countryCode) || { minAge: 18 };
+        const cfg = environment.dynataMinAge.find((it: any) => it.cntCode === this.countryCode) || { minAge: 18 };
         const now = new Date();
         this.maxDate = new Date(now.getFullYear() - cfg.minAge, now.getMonth(), now.getDate() + 1).toISOString().split('T')[0];
         this.minDate = new Date(now.getFullYear() - 100, now.getMonth(), now.getDate()).toISOString().split('T')[0];
@@ -655,7 +655,7 @@ export class QuestionnaireComponent implements OnInit, OnDestroy {
 
     trackGA(): void {
         if (typeof (window as any).gtag === 'function') {
-            (window as any).gtag('config', SURVEY_CONFIG.GA_TRACKING_ID, { 'page_path': this.router.url });
+            (window as any).gtag('config', environment.GA_TRACKING_ID, { 'page_path': this.router.url });
         }
     }
 

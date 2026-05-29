@@ -3,7 +3,6 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of, throwError, timer, firstValueFrom } from 'rxjs';
 import { catchError, map, switchMap, timeout } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
-import { SURVEY_CONFIG } from '../config/survey.config';
 import { SurveyQuestion, SurveyTransaction, LocalStorageAnswer } from '../models/survey.types';
 
 @Injectable({
@@ -105,7 +104,7 @@ export class SurveyService {
 
     // Research Defender Integration (Optimized with RxJS)
     async researchDfdFunction(token: string, grp_id: number, supId: string, surData: any, pid: string): Promise<any> {
-        if (!SURVEY_CONFIG.resrchDefender.enabled) {
+        if (!environment.resrchDefender.enabled) {
             return Promise.resolve("Research Defender is disabled in config");
         }
         if (surData.resrchDfdActCheck === 1 && surData.resrchDfdChk === 1) {
@@ -143,7 +142,7 @@ export class SurveyService {
     }
 
     researchDefenderActivityApi(token: string, grpId: number, supId: string): Promise<any> {
-        const config = SURVEY_CONFIG.resrchDefender;
+        const config = environment.resrchDefender;
         const rdActivityUrl = `${config.activityURL}?range=${config.activity_range}&survey_number=${grpId}&session_id=${token}&supplier_id=${supId}`;
 
         return firstValueFrom(
@@ -164,7 +163,7 @@ export class SurveyService {
     }
 
     researchDefenderGetTokenApi(pid: string): Promise<any> {
-        const config = SURVEY_CONFIG.resrchDefender;
+        const config = environment.resrchDefender;
         const rdGetTokenUrl = `${config.getTokenAPI}${config.publishable_key}?tokens=1&rt_sr_pd=${pid}`;
 
         return firstValueFrom(
