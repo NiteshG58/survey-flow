@@ -4,17 +4,20 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { SurveyService } from '../../services/survey.service';
+import { environment } from '../../../environments/environment';
+import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.component';
 
 @Component({
   selector: 'app-survey-final',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LoadingSpinnerComponent],
   templateUrl: './survey-final.component.html',
   styles: []
 })
 export class SurveyFinalComponent implements OnInit {
 
   isLoading = false;
+  contentReady = false;   // true only after translations are loaded — prevents partial render
   lang = 'english';
   rtlLangCheck = false;
 
@@ -45,7 +48,7 @@ export class SurveyFinalComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     // Guard: if someone lands here directly with no pending redirect data, attempt to reconstruct it from query parameters.
-    let pending = this.surveyService.pendingFinalRedirect;
+    let pending = this.surveyService.pendingFinalRedirect; 
     if (!pending) {
       console.warn('[SurveyFinal] No pending redirect data found – attempting to initialize dynamically from query parameters.');
       try {
@@ -77,7 +80,45 @@ export class SurveyFinalComponent implements OnInit {
         const countryCode = surData.cntCode || 'US';
         const isRecaptcha = surData.recaptchaCheck === 1;
 
-        // 3. Check Global Bypass Data
+        // 3. Run Verisoul check (same guard as questionnaire flow)
+        // This is critical: a user hitting /final directly must still pass Verisoul
+        // before being allowed to see the final page or get redirected.
+        if (surData.verisoulCheck === 1 && (environment as any).verisoul?.enabled) {
+          console.log('[SurveyFinal] Running Verisoul check for direct URL access...');
+          const isTest = params['isTest'] === '1';
+          if (!isTest) {
+            const runVerisoulFlow = async () => {
+              try {
+                await this.surveyService.verisoulFunction(token, grpId, supId, surData);
+              } catch (error) {
+                console.error('[SurveyFinal] Verisoul check failed:', error);
+                this.router.navigate(['access-denied']);
+                throw error;
+              }
+            };
+
+            const v = (environment as any).verisoul;
+            if (!document.querySelector('script[verisoul-project-id]')) {
+              await new Promise<void>((resolve, reject) => {
+                const el = document.createElement('script');
+                el.async = true;
+                el.src = v.subdomain + v.env + '/bundle.js';
+                el.setAttribute('verisoul-project-id', v.projectId);
+                el.onload = () => { runVerisoulFlow().then(resolve).catch(reject); };
+                el.onerror = () => {
+                  console.error('[SurveyFinal] Failed to load Verisoul SDK');
+                  this.router.navigate(['access-denied']);
+                  reject('Verisoul SDK Load Error');
+                };
+                document.head.appendChild(el);
+              });
+            } else {
+              await runVerisoulFlow();
+            }
+          }
+        }
+
+        // 4. Check Global Bypass Data
         console.log('[SurveyFinal] Fetching global bypass settings...');
         const bypassData = await firstValueFrom(this.surveyService.getBypassdata());
         const isGlobalBypass = bypassData.bypass; // True means show instructions page, False means redirect immediately
@@ -148,7 +189,8 @@ export class SurveyFinalComponent implements OnInit {
       this.rtlLangCheck = true;
     }
 
-    // Load multilingual translation JSON using absolute path to avoid 404 under nested router views
+    // Load multilingual translation JSON using absolute path to avoid 404 under nested router views.
+    // contentReady is set to true only after this resolves so the template renders everything at once.
     this.http.get(`/multiLingual/${this.lang}.json`).subscribe({
       next: (json: any) => {
         this.instructionLabel = json['srvyPrcs.Instruction'] || 'Instruction';
@@ -162,6 +204,7 @@ export class SurveyFinalComponent implements OnInit {
         if (this.checkRtlText(this.instructionLabel) || this.checkRtlText(this.msgPara)) {
           this.rtlLangCheck = true;
         }
+        this.contentReady = true;
         this.cdr.markForCheck();
       },
       error: (err) => {
@@ -177,6 +220,7 @@ export class SurveyFinalComponent implements OnInit {
         if (this.checkRtlText(this.instructionLabel) || this.checkRtlText(this.msgPara)) {
           this.rtlLangCheck = true;
         }
+        this.contentReady = true;
         this.cdr.markForCheck();
       }
     });

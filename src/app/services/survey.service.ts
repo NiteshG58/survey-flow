@@ -107,8 +107,8 @@ export class SurveyService {
         if (!environment.resrchDefender.enabled) {
             return Promise.resolve("Research Defender is disabled in config");
         }
-        if (surData.resrchDfdActCheck === 1 && surData.resrchDfdChk === 1) {
-            return Promise.reject("Error: Missing required parameters in researchDfdFunction");
+        if (surData.resrchDfdActCheck !== 1 && surData.resrchDfdChk !== 1) {
+            return Promise.resolve("Error: Missing required parameters in researchDfdFunction");
         }
 
         if (surData.resrchDfdChk === 1 && surData.resrchDfdActCheck === 1) {

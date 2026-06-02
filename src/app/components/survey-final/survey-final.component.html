@@ -1,4 +1,6 @@
-<div class="bg_colr" [dir]="rtlLangCheck ? 'rtl' : 'ltr'" [class.rtl-mode]="rtlLangCheck">
+<app-loading-spinner [loading]="!contentReady"></app-loading-spinner>
+
+<div *ngIf="contentReady" class="bg_colr" [dir]="rtlLangCheck ? 'rtl' : 'ltr'" [class.rtl-mode]="rtlLangCheck">
     <div class="container">
         <div class="wrap infrmtion">
             <div class="InstNameDiv">

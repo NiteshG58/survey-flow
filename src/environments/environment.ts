@@ -38,9 +38,9 @@ export const environment = {
         activityURL: 'https://prod.resdefio.com/activity',
         activity_range: 24,
         headers: {
-            "x-api-key": ""
+            "x-api-key": "MCqV62fJve9lPal9ESRyw77WreU32slr9jkeij4W"
         },
-        publishable_key: "",
+        publishable_key: "ac81b20f-1f54-4dbc-b1e8-468a691a1486",
         xhrFields: {
             'Access-Control-Allow-Methods': 'GET, POST',
             'Access-Control-Allow-Headers': "Access-Control-Allow-Headers, Origin, X-Requested-With, Content-Type, Accept, Authorization",
